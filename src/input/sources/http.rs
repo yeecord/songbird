@@ -179,6 +179,10 @@ impl AsyncMediaSource for HttpStream {
         self.len
     }
 
+    fn has_next(&self) -> bool {
+        false
+    }
+
     async fn try_resume(
         &mut self,
         offset: u64,

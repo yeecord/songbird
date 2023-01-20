@@ -53,8 +53,20 @@ impl AsyncAdapterSink {
                     if let Ok(n) = self.stream.read(&mut inner_buf).await {
                         read_region = 0..n;
                         if n == 0 {
-                            drop(self.resp_tx.send_async(AdapterResponse::ReadZero).await);
-                            hit_end = true;
+                            if seen_bytes == 0
+                                || (seen_bytes >= self.stream.byte_len().await.unwrap_or(0)
+                                    && !self.stream.has_next())
+                            {
+                                drop(self.resp_tx.send_async(AdapterResponse::ReadZero).await);
+                                hit_end = true;
+                            } else {
+                                match self.stream.try_resume(seen_bytes).await {
+                                    Ok(s) => {
+                                        self.stream = s;
+                                    },
+                                    Err(_e) => break,
+                                }
+                            }
                         }
                         seen_bytes += n as u64;
                     } else {
@@ -329,4 +341,7 @@ pub trait AsyncMediaSource: AsyncRead + AsyncSeek + Send + Sync + Unpin {
     ) -> Result<Box<dyn AsyncMediaSource>, AudioStreamError> {
         Err(AudioStreamError::Unsupported)
     }
+
+    /// if the stream is dash, then it will try resuming next.
+    fn has_next(&self) -> bool;
 }
