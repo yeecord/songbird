@@ -16,7 +16,7 @@ use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
         Arc,
-    },
+    }, time::Duration,
 };
 use symphonia_core::io::MediaSource;
 use tokio::{
@@ -227,6 +227,8 @@ impl Read for AsyncAdapterStream {
         // TODO: make this run via condvar instead?
         // This needs to remain blocking or spin loopy
         // Mainly because this is at odds with "keep CPU low."
+        let mut retry = 0u8;
+
         loop {
             drop(self.handle_messages(false));
 
@@ -241,6 +243,14 @@ impl Read for AsyncAdapterStream {
                     if self.finalised.load(Ordering::Relaxed) {
                         return Ok(0);
                     }
+
+                    retry += 1;
+
+                    if retry > 10 {
+                        return Ok(0);
+                    }
+
+                    std::thread::sleep(Duration::from_millis(75));
 
                     self.check_dropped()?;
                     std::thread::yield_now();
