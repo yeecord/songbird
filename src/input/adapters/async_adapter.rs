@@ -21,7 +21,7 @@ use std::{
 use symphonia_core::io::MediaSource;
 use tokio::{
     io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt},
-    sync::Notify,
+    sync::Notify, time::timeout,
 };
 
 struct AsyncAdapterSink {
@@ -50,31 +50,39 @@ impl AsyncAdapterSink {
 
             if !pause_buf_moves {
                 if !hit_end && read_region.is_empty() {
-                    if let Ok(n) = self.stream.read(&mut inner_buf).await {
-                        read_region = 0..n;
-                        if n == 0 {
-                            if seen_bytes == 0
-                                || (seen_bytes >= self.stream.byte_len().await.unwrap_or(0)
-                                    && !self.stream.has_next())
-                            {
-                                drop(self.resp_tx.send_async(AdapterResponse::ReadZero).await);
-                                hit_end = true;
-                            } else {
-                                match self.stream.try_resume(seen_bytes).await {
-                                    Ok(s) => {
-                                        self.stream = s;
-                                    },
-                                    Err(_e) => break,
+                    match timeout(Duration::from_secs(5000), self.stream.read(&mut inner_buf)).await {
+                        Ok(Ok(n)) => {
+                            read_region = 0..n;
+                            if n == 0 {
+                                if seen_bytes == 0
+                                    || (seen_bytes >= self.stream.byte_len().await.unwrap_or(0)
+                                        && !self.stream.has_next())
+                                {
+                                    drop(self.resp_tx.send_async(AdapterResponse::ReadZero).await);
+                                    hit_end = true;
+                                } else {
+                                    match self.stream.try_resume(seen_bytes).await {
+                                        Ok(s) => {
+                                            self.stream = s;
+                                        },
+                                        Err(_e) => break,
+                                    }
                                 }
                             }
-                        }
-                        seen_bytes += n as u64;
-                    } else {
-                        match self.stream.try_resume(seen_bytes).await {
-                            Ok(s) => {
-                                self.stream = s;
-                            },
-                            Err(_e) => break,
+                            seen_bytes += n as u64;
+                        },
+                        Ok(Err(_)) => {
+                            match self.stream.try_resume(seen_bytes).await {
+                                Ok(s) => {
+                                    self.stream = s;
+                                },
+                                Err(_e) => break,
+                            }
+                        },
+                        Err(_) => {
+                            println!("[Adapter] Timeout buffering");
+                            drop(self.resp_tx.send_async(AdapterResponse::ReadZero).await);
+                            hit_end = true;
                         }
                     }
                 }
