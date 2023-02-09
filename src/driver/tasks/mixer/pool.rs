@@ -16,7 +16,7 @@ use symphonia_core::{
 use tokio::runtime::Handle;
 
 pub static POOL: Lazy<ThreadPool> = Lazy::new(|| ThreadPool::new(
-    1,
+    5,
     512,
     Duration::from_secs(60),
 ));
@@ -59,7 +59,7 @@ impl BlockyTaskPool {
                         far_pool.send_to_parse(out, lazy, callback, seek_time, config);
                     });
                 } else {
-                    POOL.read().execute(move || {
+                    POOL.execute(move || {
                         let out = lazy.create();
                         far_pool.send_to_parse(out, lazy, callback, seek_time, config);
                     });
@@ -132,7 +132,7 @@ impl BlockyTaskPool {
     ) {
         let pool_clone = self.clone();
 
-        POOL.read().execute(move || match rec {
+        POOL.execute(move || match rec {
             Some(rec) if (!input.supports_backseek) && backseek_needed => {
                 pool_clone.create(callback, Input::Lazy(rec), Some(seek_time), config);
             },
