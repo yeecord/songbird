@@ -6,7 +6,8 @@ use crate::{
     Config,
 };
 use flume::Sender;
-use parking_lot::RwLock;
+use once_cell::sync::Lazy;
+use rusty_pool::ThreadPool;
 use std::{result::Result as StdResult, sync::Arc, time::Duration};
 use symphonia_core::{
     formats::{SeekMode, SeekTo},
@@ -14,26 +15,26 @@ use symphonia_core::{
 };
 use tokio::runtime::Handle;
 
-// pub static POOL: Lazy<ThreadPool> = Lazy::new(|| ThreadPool::new(
-//     1,
-//     512,
-//     Duration::from_secs(60),
-// ));
+pub static POOL: Lazy<ThreadPool> = Lazy::new(|| ThreadPool::new(
+    1,
+    512,
+    Duration::from_secs(60),
+));
 
 #[derive(Clone)]
 pub struct BlockyTaskPool {
-    pool: Arc<RwLock<rusty_pool::ThreadPool>>,
+    // pool: Arc<RwLock<rusty_pool::ThreadPool>>,
     handle: Handle,
 }
 
 impl BlockyTaskPool {
     pub fn new(handle: Handle) -> Self {
         Self {
-            pool: Arc::new(RwLock::new(rusty_pool::ThreadPool::new(
-                1,
-                64,
-                Duration::from_secs(300),
-            ))),
+            // pool: Arc::new(RwLock::new(rusty_pool::ThreadPool::new(
+            //     1,
+            //     64,
+            //     Duration::from_secs(300),
+            // ))),
             handle,
         }
     }
@@ -58,7 +59,7 @@ impl BlockyTaskPool {
                         far_pool.send_to_parse(out, lazy, callback, seek_time, config);
                     });
                 } else {
-                    self.pool.read().execute(move || {
+                    POOL.read().execute(move || {
                         let out = lazy.create();
                         far_pool.send_to_parse(out, lazy, callback, seek_time, config);
                     });
@@ -97,7 +98,7 @@ impl BlockyTaskPool {
     ) {
         let pool_clone = self.clone();
 
-        self.pool.read().execute(
+        POOL.execute(
             move || match input.promote(config.codec_registry, config.format_registry) {
                 Ok(LiveInput::Parsed(parsed)) => match seek_time {
                     // If seek time is zero, then wipe it out.
@@ -131,7 +132,7 @@ impl BlockyTaskPool {
     ) {
         let pool_clone = self.clone();
 
-        self.pool.read().execute(move || match rec {
+        POOL.read().execute(move || match rec {
             Some(rec) if (!input.supports_backseek) && backseek_needed => {
                 pool_clone.create(callback, Input::Lazy(rec), Some(seek_time), config);
             },
