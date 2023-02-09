@@ -125,7 +125,9 @@ impl<'a> InternalTrack {
                     )));
                 },
                 TrackCommand::Request(tx) => {
-                    drop(tx.send(self.state()));
+                    if let Err(e) = tx.try_send(self.state()) {
+                        println!("[Songbird] Error responding to info request: {e}");
+                    }
                 },
                 TrackCommand::Loop(loops) => {
                     self.loops = loops;
