@@ -16,11 +16,14 @@ use uuid::Uuid;
 /// the underlying [`Track`] object has been discarded. Those which aren't refer
 /// to shared data not used by the driver.
 pub struct TrackHandle {
-    inner: Arc<InnerHandle>,
+    /// inner handle
+    pub inner: Arc<InnerHandle>,
 }
 
-struct InnerHandle {
-    command_channel: Sender<TrackCommand>,
+/// Internal handler for track
+pub struct InnerHandle {
+    /// Internal Track command channel
+    pub command_channel: Sender<TrackCommand>,
     uuid: Uuid,
     typemap: RwLock<TypeMap>,
 }

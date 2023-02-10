@@ -122,7 +122,7 @@ impl Driver {
 
     /// Connects to a voice channel using the specified server.
     #[instrument(skip(self))]
-    pub(crate) fn raw_connect(&mut self, info: ConnectionInfo, tx: Sender<Result<()>>) {
+    pub fn raw_connect(&mut self, info: ConnectionInfo, tx: Sender<Result<()>>) {
         self.send(CoreMessage::ConnectWithResult(info, tx));
     }
 
