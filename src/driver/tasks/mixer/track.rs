@@ -84,42 +84,42 @@ impl<'a> InternalTrack {
             match cmd {
                 TrackCommand::Play => {
                     self.playing.change_to(PlayMode::Play);
-                    drop(ic.events.send(EventMessage::ChangeState(
+                    drop(ic.events.try_send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Mode(self.playing.clone()),
                     )));
                 },
                 TrackCommand::Pause => {
                     self.playing.change_to(PlayMode::Pause);
-                    drop(ic.events.send(EventMessage::ChangeState(
+                    drop(ic.events.try_send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Mode(self.playing.clone()),
                     )));
                 },
                 TrackCommand::Stop => {
                     self.playing.change_to(PlayMode::Stop);
-                    drop(ic.events.send(EventMessage::ChangeState(
+                    drop(ic.events.try_send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Mode(self.playing.clone()),
                     )));
                 },
                 TrackCommand::Volume(vol) => {
                     self.volume = vol;
-                    drop(ic.events.send(EventMessage::ChangeState(
+                    drop(ic.events.try_send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Volume(self.volume),
                     )));
                 },
                 TrackCommand::Seek(req) => action.seek_point = Some(req),
                 TrackCommand::AddEvent(evt) => {
-                    drop(ic.events.send(EventMessage::AddTrackEvent(index, evt)));
+                    drop(ic.events.try_send(EventMessage::AddTrackEvent(index, evt)));
                 },
                 TrackCommand::Do(func) => {
                     if let Some(indiv_action) = func(self.view()) {
                         action.combine(indiv_action);
                     }
 
-                    drop(ic.events.send(EventMessage::ChangeState(
+                    drop(ic.events.try_send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Total(self.state()),
                     )));
@@ -131,7 +131,7 @@ impl<'a> InternalTrack {
                 },
                 TrackCommand::Loop(loops) => {
                     self.loops = loops;
-                    drop(ic.events.send(EventMessage::ChangeState(
+                    drop(ic.events.try_send(EventMessage::ChangeState(
                         index,
                         TrackStateChange::Loops(self.loops, true),
                     )));
