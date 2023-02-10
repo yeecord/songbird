@@ -217,17 +217,9 @@ impl TrackHandle {
     pub(crate) fn send(&self, cmd: TrackCommand) -> TrackResult<()> {
         // As the send channels are unbounded, we can be reasonably certain
         // that send failure == cancellation.
-        let result = self.inner
+         self.inner
             .command_channel
-            .send_timeout(cmd, Duration::from_secs(3));
-
-        if let Err(e) = result {
-            println!("[Send] Timeout sending into command_channel for {}: {e}", self.uuid());
-            return Err(ControlError::Finished);
-        }
-
-        Ok(())
-
+            .send(cmd).map_err(|_| ControlError::Finished)
     }
 }
 
