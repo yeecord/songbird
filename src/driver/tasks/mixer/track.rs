@@ -125,7 +125,7 @@ impl<'a> InternalTrack {
                     )));
                 },
                 TrackCommand::Request(tx) => {
-                    if let Err(e) = tx.try_send(self.state()) {
+                    if let Err(e) = tx.send_timeout(self.state(), Duration::from_secs(3)) {
                         println!("[Songbird] Error responding to info request: {e}");
                     }
                 },
