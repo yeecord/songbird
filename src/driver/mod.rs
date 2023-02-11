@@ -63,7 +63,8 @@ use tracing::instrument;
 pub struct Driver {
     config: Config,
     self_mute: bool,
-    sender: Sender<CoreMessage>,
+    /// channel for doing core jobs
+    pub sender: Sender<CoreMessage>,
     // Making this an Option is an abhorrent hack to coerce the borrow checker
     // into letting us have an &TrackQueue at the same time as an &mut Driver.
     // This is probably preferable to cloning the driver: Arc<...> should be nonzero
