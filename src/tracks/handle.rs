@@ -220,7 +220,7 @@ impl TrackHandle {
     pub(crate) fn send(&self, cmd: TrackCommand) -> TrackResult<()> {
         // As the send channels are unbounded, we can be reasonably certain
         // that send failure == cancellation.
-         self.inner
+        self.inner
             .command_channel
             .send(cmd).map_err(|_| ControlError::Finished)
     }
