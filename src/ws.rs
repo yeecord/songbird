@@ -14,7 +14,7 @@ use tokio_tungstenite::{
     MaybeTlsStream,
     WebSocketStream,
 };
-use tracing::{instrument, debug, log::warn};
+use tracing::{instrument, warn};
 use url::Url;
 
 pub struct WsStream(WebSocketStream<MaybeTlsStream<TcpStream>>);
