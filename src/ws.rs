@@ -14,7 +14,7 @@ use tokio_tungstenite::{
     MaybeTlsStream,
     WebSocketStream,
 };
-use tracing::instrument;
+use tracing::{instrument, debug, log::warn};
 use url::Url;
 
 pub struct WsStream(WebSocketStream<MaybeTlsStream<TcpStream>>);
@@ -96,8 +96,17 @@ pub(crate) fn convert_ws_message(message: Option<Message>) -> Result<Option<Even
         // simd-json::serde::from_str may leave an &mut str in a non-UTF state on failure.
         // The below is safe as we have taken ownership of the inner `String`, and don't
         // access it as a `str`/`String` or return it if failure occurs.
-        Some(Message::Text(mut payload)) =>
-            unsafe { crate::json::from_str(payload.as_mut_str()) }.map(Some)?,
+        Some(Message::Text(mut payload)) => {
+            let parsed = unsafe { crate::json::from_str(payload.as_mut_str()) };
+
+            if let Err(e) = parsed {
+                warn!("[WS] Trying to parse unknown payload, is Discord adding new shit? {e}");
+                
+                return Ok(None);
+            }
+
+            parsed.map(Some)?
+        },
         Some(Message::Binary(bytes)) => {
             return Err(Error::UnexpectedBinaryMessage(bytes));
         },
