@@ -34,7 +34,7 @@ struct AsyncAdapterSink {
 
 impl AsyncAdapterSink {
     async fn launch(mut self) {
-        let mut inner_buf = [0u8; 32 * 1024];
+        let mut inner_buf = vec![0u8; 32 * 1024];
         let mut read_region = 0..0;
         let mut hit_end = false;
         let mut blocked = false;
