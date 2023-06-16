@@ -1,4 +1,4 @@
-[![docs-badge][]][docs] [![next-docs-badge][]][next-docs] [![build badge]][build] [![guild-badge][]][guild] [![crates.io version]][crates.io link] [![rust 1.61.0+ badge]][rust 1.61.0+ link]
+[![docs-badge][]][docs] [![next-docs-badge][]][next-docs] [![build badge]][build] [![guild-badge][]][guild] [![crates.io version]][crates.io link] [![rust badge]][rust link]
 
 # Songbird
 
@@ -79,7 +79,7 @@ Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"
 [audiopus]: https://github.com/lakelezz/audiopus
 [according to the installation instructions on the main repo]: https://github.com/yt-dlp/yt-dlp#installation
 
-[build badge]: https://img.shields.io/github/workflow/status/serenity-rs/songbird/CI?style=flat-square
+[build badge]: https://img.shields.io/github/actions/workflow/status/serenity-rs/songbird/ci.yml?branch=current&style=flat-square
 [build]: https://github.com/serenity-rs/songbird/actions
 
 [docs-badge]: https://img.shields.io/badge/docs-current-4d76ae.svg?style=flat-square
@@ -94,5 +94,5 @@ Songbird's logo is based upon the copyright-free image ["Black-Capped Chickadee"
 [crates.io link]: https://crates.io/crates/songbird
 [crates.io version]: https://img.shields.io/crates/v/songbird.svg?style=flat-square
 
-[rust 1.61.0+ badge]: https://img.shields.io/badge/rust-1.61.0+-93450a.svg?style=flat-square
-[rust 1.61.0+ link]: https://blog.rust-lang.org/2022/05/19/Rust-1.61.0.html
+[rust badge]: https://img.shields.io/badge/rust-1.68.2+-93450a.svg?style=flat-square
+[rust link]: https://blog.rust-lang.org/2023/03/28/Rust-1.68.2.html

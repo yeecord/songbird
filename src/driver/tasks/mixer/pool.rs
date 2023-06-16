@@ -16,8 +16,8 @@ use symphonia_core::{
 use tokio::runtime::Handle;
 
 pub static POOL: Lazy<ThreadPool> = Lazy::new(|| ThreadPool::new(
-    5,
-    512,
+    0,
+    64,
     Duration::from_secs(60),
 ));
 

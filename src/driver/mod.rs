@@ -20,6 +20,8 @@ pub mod retry;
 pub mod tasks;
 #[cfg(test)]
 pub(crate) mod test_config;
+#[cfg(any(test, feature = "internals"))]
+mod test_impls;
 
 use connection::error::{Error, Result};
 pub use crypto::CryptoMode;
@@ -27,8 +29,18 @@ pub(crate) use crypto::CryptoState;
 #[cfg(feature = "receive")]
 pub use decode_mode::DecodeMode;
 pub use mix_mode::MixMode;
+pub use scheduler::{
+    Config as SchedulerConfig,
+    Error as SchedulerError,
+    LiveStatBlock,
+    Mode as SchedulerMode,
+    Scheduler,
+    DEFAULT_SCHEDULER,
+};
 #[cfg(test)]
 pub use test_config::*;
+#[cfg(any(test, feature = "internals"))]
+pub use test_impls::*;
 
 #[cfg(feature = "builtin-queue")]
 use crate::tracks::TrackQueue;

@@ -197,7 +197,7 @@ impl AsyncAdapterStream {
         };
 
         tokio::spawn(async move {
-            sink.launch().await;
+            Box::pin(sink.launch()).await;
         });
 
         stream
@@ -211,7 +211,7 @@ impl AsyncAdapterStream {
                 self.resp_rx.try_recv().ok()
             };
 
-            let msg = if let Some(msg) = msg { msg } else { break None };
+            let Some(msg) = msg else { break None };
 
             // state changes
             match &msg {
@@ -287,7 +287,7 @@ impl Seek for AsyncAdapterStream {
 
         self.check_dropped()?;
 
-        let _ = self.req_tx.send(AdapterRequest::Seek(pos));
+        _ = self.req_tx.send(AdapterRequest::Seek(pos));
 
         // wait for async to tell us that it has stopped writing,
         // then clear buf and allow async to write again.
@@ -300,7 +300,7 @@ impl Seek for AsyncAdapterStream {
 
         self.bytes_out.skip(self.bytes_out.capacity());
 
-        let _ = self.req_tx.send(AdapterRequest::SeekCleared);
+        _ = self.req_tx.send(AdapterRequest::SeekCleared);
 
         match self.handle_messages(Operation::Seek) {
             Some(AdapterResponse::SeekResult(a)) => a,
@@ -318,7 +318,7 @@ impl MediaSource for AsyncAdapterStream {
     fn byte_len(&self) -> Option<u64> {
         self.check_dropped().ok()?;
 
-        let _ = self.req_tx.send(AdapterRequest::ByteLen);
+        _ = self.req_tx.send(AdapterRequest::ByteLen);
 
         match self.handle_messages(Operation::Len) {
             Some(AdapterResponse::ByteLen(a)) => a,
