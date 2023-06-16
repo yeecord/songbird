@@ -6,8 +6,6 @@ use crate::{
     Config,
 };
 use flume::Sender;
-use once_cell::sync::Lazy;
-use rusty_pool::ThreadPool;
 use std::{result::Result as StdResult, sync::Arc, time::Duration};
 use symphonia_core::{
     formats::{SeekMode, SeekTo},
@@ -15,26 +13,16 @@ use symphonia_core::{
 };
 use tokio::runtime::Handle;
 
-pub static POOL: Lazy<ThreadPool> = Lazy::new(|| ThreadPool::new(
-    1,
-    1024,
-    Duration::from_secs(300),
-));
-
 #[derive(Clone)]
 pub struct BlockyTaskPool {
-    // pool: Arc<RwLock<rusty_pool::ThreadPool>>,
+    pool: rusty_pool::ThreadPool,
     handle: Handle,
 }
 
 impl BlockyTaskPool {
     pub fn new(handle: Handle) -> Self {
         Self {
-            // pool: Arc::new(RwLock::new(rusty_pool::ThreadPool::new(
-            //     1,
-            //     64,
-            //     Duration::from_secs(300),
-            // ))),
+            pool: rusty_pool::ThreadPool::new(0, 64, Duration::from_secs(300)),
             handle,
         }
     }
@@ -59,14 +47,15 @@ impl BlockyTaskPool {
                         far_pool.send_to_parse(out, lazy, callback, seek_time, config);
                     });
                 } else {
-                    POOL.execute(move || {
+                    self.pool.execute(move || {
                         let out = lazy.create();
                         far_pool.send_to_parse(out, lazy, callback, seek_time, config);
                     });
                 }
             },
-            Input::Live(live, maybe_create) =>
-                self.parse(config, callback, live, maybe_create, seek_time),
+            Input::Live(live, maybe_create) => {
+                self.parse(config, callback, live, maybe_create, seek_time)
+            },
         }
     }
 
@@ -98,8 +87,8 @@ impl BlockyTaskPool {
     ) {
         let pool_clone = self.clone();
 
-        POOL.execute(
-            move || match input.promote(config.codec_registry, config.format_registry) {
+        self.pool.execute(move || {
+            match input.promote(config.codec_registry, config.format_registry) {
                 Ok(LiveInput::Parsed(parsed)) => match seek_time {
                     // If seek time is zero, then wipe it out.
                     // Some formats (MKV) make SeekTo(0) require a backseek to realign with the
@@ -115,8 +104,8 @@ impl BlockyTaskPool {
                 Err(e) => {
                     drop(callback.send(MixerInputResultMessage::ParseErr(e.into())));
                 },
-            },
-        );
+            }
+        });
     }
 
     pub fn seek(
@@ -132,7 +121,7 @@ impl BlockyTaskPool {
     ) {
         let pool_clone = self.clone();
 
-        POOL.execute(move || match rec {
+        self.pool.execute(move || match rec {
             Some(rec) if (!input.supports_backseek) && backseek_needed => {
                 pool_clone.create(callback, Input::Lazy(rec), Some(seek_time), config);
             },
