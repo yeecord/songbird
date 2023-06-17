@@ -221,7 +221,7 @@ impl Default for Config {
             #[cfg(all(feature = "driver", feature = "receive"))]
             playout_spike_length: 3,
             #[cfg(feature = "gateway")]
-            gateway_timeout: Some(Duration::from_secs(10)),
+            gateway_timeout: Some(Duration::from_secs(5)),
             #[cfg(feature = "driver")]
             mix_mode: MixMode::Stereo,
             #[cfg(feature = "driver")]
@@ -231,7 +231,7 @@ impl Default for Config {
             #[cfg(feature = "driver")]
             driver_retry: Retry::default(),
             #[cfg(feature = "driver")]
-            driver_timeout: None,
+            driver_timeout: Some(Duration::from_secs(5)),
             #[cfg(feature = "driver")]
             codec_registry: &CODEC_REGISTRY,
             #[cfg(feature = "driver")]
