@@ -8,7 +8,7 @@ use crate::{
 use flume::Sender;
 use once_cell::sync::Lazy;
 use rusty_pool::ThreadPool;
-use std::{result::Result as StdResult, sync::Arc, time::Duration};
+use std::{result::Result as StdResult, sync::Arc};
 use symphonia_core::{
     formats::{SeekMode, SeekTo},
     io::MediaSource,

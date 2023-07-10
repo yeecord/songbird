@@ -286,7 +286,7 @@ mod test {
             let mut pkt = MutableRtpPacket::new(&mut buf[..]).unwrap();
             let mut crypto_state = CryptoState::from(mode);
             let payload = pkt.payload_mut();
-            (&mut payload[TAG_SIZE..TAG_SIZE + TRUE_PAYLOAD.len()])
+            payload[TAG_SIZE..TAG_SIZE + TRUE_PAYLOAD.len()]
                 .copy_from_slice(&TRUE_PAYLOAD[..]);
 
             let final_payload_size =
