@@ -15,11 +15,7 @@ use symphonia_core::{
 };
 use tokio::runtime::Handle;
 
-pub static POOL: Lazy<ThreadPool> = Lazy::new(|| ThreadPool::new(
-    1,
-    1024,
-    Duration::from_secs(60),
-));
+pub static POOL: Lazy<ThreadPool> = Lazy::new(ThreadPool::default);
 
 #[derive(Clone)]
 pub struct BlockyTaskPool {
