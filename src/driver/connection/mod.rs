@@ -30,7 +30,7 @@ use std::{net::IpAddr, str::FromStr};
 use tokio::{net::UdpSocket, spawn, time::timeout};
 use tracing::{debug, info, instrument};
 use url::Url;
-use xsalsa20poly1305::{KeyInit, XSalsa20Poly1305 as Cipher};
+use crypto_secretbox::{KeyInit, XSalsa20Poly1305 as Cipher};
 
 pub(crate) struct Connection {
     pub(crate) info: ConnectionInfo,
@@ -340,7 +340,7 @@ async fn init_cipher(client: &mut WsStream, mode: CryptoMode) -> Result<Cipher> 
                 }
 
                 return Cipher::new_from_slice(&desc.secret_key)
-                    .map_err(|_| Error::CryptoInvalidLength);
+                    .map_err(|e| Error::CryptoInvalidLength(e));
             },
             other => {
                 debug!(

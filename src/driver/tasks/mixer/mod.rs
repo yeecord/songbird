@@ -17,7 +17,7 @@ use super::{
 };
 use crate::{
     constants::*,
-    driver::MixMode,
+    driver::{MixMode, crypto::TAG_SIZE},
     events::EventStore,
     input::{Input, Parsed},
     tracks::{Action, LoopState, PlayError, PlayMode, TrackCommand, TrackHandle, TrackState, View},
@@ -53,7 +53,6 @@ use symphonia_core::{
 };
 use tokio::runtime::Handle;
 use tracing::error;
-use xsalsa20poly1305::TAG_SIZE;
 
 #[cfg(test)]
 use crate::driver::test_config::{OutputMessage, OutputMode};

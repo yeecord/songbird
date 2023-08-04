@@ -50,7 +50,11 @@ twilight-model = { default-features = false, optional = true, version = "0.15.0"
 typemap_rev = { optional = true, version = "0.3" }
 url = { optional = true, version = "2" }
 uuid = { features = ["v4"], optional = true, version = "1" }
-xsalsa20poly1305 = { features = ["std"], optional = true, version = "0.9" }
+
+[dependencies.crypto_secretbox]
+optional = true
+version = "0.1.1"
+features = ["std"]
 
 [dependencies.serenity]
 branch = "next"
@@ -115,7 +119,7 @@ driver = [
     "dep:typemap_rev",
     "dep:url",
     "dep:uuid",
-    "dep:xsalsa20poly1305",
+    "dep:crypto_secretbox",
     "tokio?/fs",
     "tokio?/io-util",
     "tokio?/macros",

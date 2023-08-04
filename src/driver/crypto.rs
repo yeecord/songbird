@@ -4,14 +4,16 @@ use discortp::{rtp::RtpPacket, MutablePacket};
 use rand::Rng;
 use std::num::Wrapping;
 #[cfg(any(feature = "receive", test))]
-use xsalsa20poly1305::Tag;
-use xsalsa20poly1305::{
-    aead::{AeadInPlace, Error as CryptoError},
+use crypto_secretbox::Tag;
+use crypto_secretbox::{
+    AeadInPlace,
+    Error as CryptoError,
     Nonce,
-    XSalsa20Poly1305 as Cipher,
-    NONCE_SIZE,
-    TAG_SIZE,
+    XSalsa20Poly1305 as Cipher, SecretBox,
 };
+
+pub const NONCE_SIZE: usize = SecretBox::<()>::NONCE_SIZE;
+pub const TAG_SIZE: usize = SecretBox::<()>::TAG_SIZE;
 
 /// Variants of the `XSalsa20Poly1305` encryption scheme.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -252,9 +254,11 @@ impl CryptoState {
 
 #[cfg(test)]
 mod test {
+    use crate::driver::KEY_SIZE;
+
     use super::*;
     use discortp::rtp::MutableRtpPacket;
-    use xsalsa20poly1305::{KeyInit, KEY_SIZE, TAG_SIZE};
+    use crypto_secretbox::KeyInit;
 
     #[test]
     fn small_packet_decrypts_error() {

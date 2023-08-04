@@ -13,7 +13,9 @@ use crate::{
 use flume::{Receiver, Sender};
 use std::{io::Cursor, net::UdpSocket, sync::Arc};
 use tokio::runtime::Handle;
-use xsalsa20poly1305::{KeyInit, XSalsa20Poly1305 as Cipher, KEY_SIZE};
+use crypto_secretbox::{KeyInit, XSalsa20Poly1305 as Cipher, SecretBox};
+
+pub const KEY_SIZE: usize = SecretBox::<()>::KEY_SIZE;
 
 use super::{
     scheduler::*,
