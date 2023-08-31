@@ -20,6 +20,7 @@ use crate::{
     ws::WsStream,
     ConnectionInfo,
 };
+use crypto_secretbox::{KeyInit, XSalsa20Poly1305 as Cipher};
 use discortp::discord::{IpDiscoveryPacket, IpDiscoveryType, MutableIpDiscoveryPacket};
 use error::{Error, Result};
 use flume::Sender;
@@ -30,7 +31,6 @@ use std::{net::IpAddr, str::FromStr};
 use tokio::{net::UdpSocket, spawn, time::timeout};
 use tracing::{debug, info, instrument};
 use url::Url;
-use crypto_secretbox::{KeyInit, XSalsa20Poly1305 as Cipher};
 
 pub(crate) struct Connection {
     pub(crate) info: ConnectionInfo,
@@ -75,7 +75,9 @@ impl Connection {
             .await?;
 
         loop {
-            let Some(value) = client.recv_json().await? else { continue };
+            let Some(value) = client.recv_json().await? else {
+                continue;
+            };
 
             match value {
                 GatewayEvent::Ready(r) => {
@@ -112,7 +114,10 @@ impl Connection {
             udp
         } else {
             let socket = Socket::from(udp.into_std()?);
+
+            #[cfg(not(target_os = "macos"))]
             socket.set_recv_buffer_size(0)?;
+
             UdpSocket::from_std(socket.into())?
         };
 
@@ -279,7 +284,9 @@ impl Connection {
         let mut resumed = None;
 
         loop {
-            let Some(value) = client.recv_json().await? else { continue };
+            let Some(value) = client.recv_json().await? else {
+                continue;
+            };
 
             match value {
                 GatewayEvent::Resumed => {
@@ -331,7 +338,9 @@ fn generate_url(endpoint: &mut String) -> Result<Url> {
 #[inline]
 async fn init_cipher(client: &mut WsStream, mode: CryptoMode) -> Result<Cipher> {
     loop {
-        let Some(value) = client.recv_json().await? else { continue };
+        let Some(value) = client.recv_json().await? else {
+            continue;
+        };
 
         match value {
             GatewayEvent::SessionDescription(desc) => {
@@ -340,7 +349,7 @@ async fn init_cipher(client: &mut WsStream, mode: CryptoMode) -> Result<Cipher> 
                 }
 
                 return Cipher::new_from_slice(&desc.secret_key)
-                    .map_err(|e| Error::CryptoInvalidLength(e));
+                    .map_err(|_| Error::CryptoInvalidLength);
             },
             other => {
                 debug!(

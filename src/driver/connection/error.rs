@@ -4,11 +4,11 @@ use crate::{
     driver::tasks::{error::Recipient, message::*},
     ws::Error as WsError,
 };
+use crypto_secretbox::Error as CryptoError;
 use flume::SendError;
 use serde_json::Error as JsonError;
 use std::{error::Error as StdError, fmt, io::Error as IoError};
 use tokio::time::error::Elapsed;
-use crypto_secretbox::{cipher::InvalidLength, Error as CryptoError};
 
 /// Errors encountered while connecting to a Discord voice server over the driver.
 #[derive(Debug)]
@@ -20,7 +20,7 @@ pub enum Error {
     /// An error occurred during [en/de]cryption of voice packets.
     Crypto(CryptoError),
     /// The symmetric key supplied by Discord had the wrong size.
-    CryptoInvalidLength(InvalidLength),
+    CryptoInvalidLength,
     /// Server did not return the expected crypto mode during negotiation.
     CryptoModeInvalid,
     /// Selected crypto mode was not offered by server.
@@ -91,19 +91,13 @@ impl From<Elapsed> for Error {
     }
 }
 
-impl From<InvalidLength> for Error {
-    fn from(value: InvalidLength) -> Self {
-        Error::CryptoInvalidLength(value)
-    }
-}
-
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "failed to connect to Discord RTP server: ")?;
         match self {
             Self::AttemptDiscarded => write!(f, "connection attempt was aborted/discarded"),
             Self::Crypto(e) => e.fmt(f),
-            Self::CryptoInvalidLength(e) => e.fmt(f),
+            Self::CryptoInvalidLength => write!(f, "server supplied key of wrong length"),
             Self::CryptoModeInvalid => write!(f, "server changed negotiated encryption mode"),
             Self::CryptoModeUnavailable => write!(f, "server did not offer chosen encryption mode"),
             Self::EndpointUrl => write!(f, "endpoint URL received from gateway was invalid"),
@@ -123,7 +117,7 @@ impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
             Error::AttemptDiscarded
-            | Error::CryptoInvalidLength(_)
+            | Error::CryptoInvalidLength
             | Error::CryptoModeInvalid
             | Error::CryptoModeUnavailable
             | Error::EndpointUrl

@@ -1,9 +1,9 @@
 use super::message::*;
 use crate::ws::Error as WsError;
 use audiopus::Error as OpusError;
+use crypto_secretbox::aead::Error as CryptoError;
 use flume::SendError;
 use std::io::{Error as IoError, ErrorKind as IoErrorKind};
-use crypto_secretbox::{cipher::InvalidLength, Error as CryptoError};
 
 #[derive(Debug)]
 pub enum Recipient {
@@ -20,8 +20,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[non_exhaustive]
 pub enum Error {
     Crypto(CryptoError),
-    /// Invalid length error while generating crypto keys
-    InvalidLength(InvalidLength),
     #[cfg(feature = "receive")]
     /// Received an illegal voice packet on the voice UDP socket.
     IllegalVoicePacket,

@@ -15,9 +15,10 @@ use super::{
     error::{Error, Result},
     message::*,
 };
+use crate::driver::crypto::TAG_SIZE;
 use crate::{
     constants::*,
-    driver::{MixMode, crypto::TAG_SIZE},
+    driver::MixMode,
     events::EventStore,
     input::{Input, Parsed},
     tracks::{Action, LoopState, PlayError, PlayMode, TrackCommand, TrackHandle, TrackState, View},
