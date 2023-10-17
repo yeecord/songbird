@@ -17,6 +17,7 @@
 //! [`Driver`]: crate::driver::Driver
 
 mod action;
+/// exposing command module for get_info temp fix
 pub mod command;
 mod error;
 mod handle;
