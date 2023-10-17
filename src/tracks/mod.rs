@@ -17,7 +17,7 @@
 //! [`Driver`]: crate::driver::Driver
 
 mod action;
-mod command;
+pub mod command;
 mod error;
 mod handle;
 mod looping;
